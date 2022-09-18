@@ -13,7 +13,7 @@ type jsonResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// readJSON tries to read the body of a request and converts it into JSON
+// readJSON (alternative to json.Unmarshal) tries to read the body of a request and converts it into JSON
 func (app *Config) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
 	// max json size 1MB
 	maxBytes := 1048576 // one megabyte
