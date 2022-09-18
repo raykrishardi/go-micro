@@ -1,3 +1,4 @@
 .DS_Store
 *.code-workspace
 broker-service/brokerApp
+front-end/frontApp
