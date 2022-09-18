@@ -20,6 +20,7 @@ FROM alpine:latest
 RUN mkdir /app
 
 # Copy the go build file from builder to the NEW alpine image
+# COPY --from=builder /app/brokerApp /app
 COPY brokerApp /app
 
 CMD ["/app/brokerApp"]
