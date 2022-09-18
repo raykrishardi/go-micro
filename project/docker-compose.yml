@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  broker-service:
+    build:
+      # Need to set context because docker-compose file is in project dir
+      # Set path to the Dockerfile in broker-service dir
+      context: ./../broker-service
+      dockerfile: ./../broker-service/broker-service.dockerfile
+    # Always attempt to restart if it dies
+    restart: always
+    # Broker service will be accessible from localhost port 8080
+    ports:
+    - "8080:80"
+    deploy:
+      # Deploy only 1 service for now because only 1 container can be mapped to localhost 8080 (unless using service discovery)
+      mode: replicated
+      replicas: 1
