@@ -7,13 +7,22 @@ services:
       # Set path to the Dockerfile in broker-service dir
       context: ./../broker-service
       dockerfile: ./../broker-service/broker-service.dockerfile
-    # Always attempt to restart if it dies
+    # Always attempt to restart if it dies because it keeps failing
     restart: always
     # Broker service will be accessible from localhost port 8080
     ports:
     - "8080:80"
     deploy:
       # Deploy only 1 service for now because only 1 container can be mapped to localhost 8080 (unless using service discovery)
+      mode: replicated
+      replicas: 1
+
+  logger-service:
+    build:
+      context: ./../logger-service
+      dockerfile: ./../logger-service/logger-service.dockerfile
+    restart: always
+    deploy:
       mode: replicated
       replicas: 1
 
