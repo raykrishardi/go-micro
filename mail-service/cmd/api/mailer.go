@@ -106,7 +106,7 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 		return "", err
 	}
 
-	// Execute template and passing in some data
+	// Execute template and passing in some data to {{define "body"}}
 	var tpl bytes.Buffer
 	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
 		return "", err
