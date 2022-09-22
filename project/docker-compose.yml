@@ -86,3 +86,10 @@ services:
     ports:
     - "1025:1025" # might not be used
     - "8025:8025" # this is the UI for mailhog, definitely going to be used
+
+  rabbitmq:
+    image: "rabbitmq:3.9-alpine" # there's an image version with UI management (there's management inside the image name)
+    ports:
+    - "5672:5672" 
+    volumes:
+      - ./db-data/rabbitmq/:/var/lib/rabbitmq/
