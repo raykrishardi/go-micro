@@ -11,6 +11,14 @@ type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
+	Mail   MailPayload `json:"mail,omitempty"`
+}
+
+type MailPayload struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
 }
 
 type AuthPayload struct {
@@ -46,6 +54,8 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
 		app.logItem(w, requestPayload.Log)
+	case "mail":
+		app.sendMail(w, requestPayload.Mail)
 	default:
 		if err != nil {
 			app.errorJSON(w, errors.New("unknown action"))
@@ -148,6 +158,56 @@ func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 
 	if jsonFromService.Error {
 		app.errorJSON(w, errors.New("get error response from the logger service"), http.StatusUnauthorized)
+		return
+	}
+
+	app.writeJSON(w, http.StatusAccepted, jsonFromService)
+}
+
+func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
+	// Marshall/convert to json the payload
+	jsonData, err := json.MarshalIndent(&msg, "", "\t")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	// Call the mail microservice
+	request, err := http.NewRequest("POST", "http://mail-service/send", bytes.NewBuffer(jsonData))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	// Create http client
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		// Something went wrong on the server side
+		app.errorJSON(w, errors.New("error calling mail service"))
+		return
+	}
+
+	// create a variable we'll read response.Body into
+	jsonFromService := jsonResponse{}
+
+	// decode/unmarshal the json from the auth service (basically this is an alternative to UNMARSHALLING)
+	err = json.NewDecoder(response.Body).Decode(&jsonFromService)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	if jsonFromService.Error {
+		app.errorJSON(w, errors.New("get error response from the mail service"), http.StatusUnauthorized)
 		return
 	}
 
