@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/rpc"
 
 	"github.com/raykrishardi/broker/event"
 )
@@ -56,7 +57,8 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
 		// app.logItem(w, requestPayload.Log) // SENDING POST TO log-service
-		app.logEventViaRabbit(w, requestPayload.Log) // SENDING MESSAGE TO RABBITMQ, then the listener-service will be notified if there's messages and consume it
+		// app.logEventViaRabbit(w, requestPayload.Log) // SENDING MESSAGE TO RABBITMQ, then the listener-service will be notified if there's messages and consume it
+		app.logItemViaRPC(w, requestPayload.Log) // SENDING to another go microservice via RPC
 	case "mail":
 		app.sendMail(w, requestPayload.Mail)
 	default:
@@ -250,4 +252,40 @@ func (app *Config) pushToQueue(name, msg string) error {
 	}
 
 	return nil
+}
+
+type RPCPayload struct {
+	Name string
+	Data string
+}
+
+func (app *Config) logItemViaRPC(w http.ResponseWriter, l LogPayload) {
+	client, err := rpc.Dial("tcp", "logger-service:5001")
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	rpcPayload := RPCPayload{
+		Name: l.Name,
+		Data: l.Data,
+	}
+
+	var result string
+
+	// RPCServer -> the struct that's created on the server end
+	// Naming of the function very important here!
+	// Then just pass the arguments of the RPCServer.LogInfo function
+	err = client.Call("RPCServer.LogInfo", rpcPayload, &result)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: result,
+	}
+
+	app.writeJSON(w, http.StatusAccepted, payload)
 }
