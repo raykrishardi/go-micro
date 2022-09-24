@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/raykrishardi/broker/event"
 )
 
 type RequestPayload struct {
@@ -53,7 +55,8 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		app.logItem(w, requestPayload.Log)
+		// app.logItem(w, requestPayload.Log) // SENDING POST TO log-service
+		app.logEventViaRabbit(w, requestPayload.Log) // SENDING MESSAGE TO RABBITMQ, then the listener-service will be notified if there's messages and consume it
 	case "mail":
 		app.sendMail(w, requestPayload.Mail)
 	default:
@@ -212,4 +215,39 @@ func (app *Config) sendMail(w http.ResponseWriter, msg MailPayload) {
 	}
 
 	app.writeJSON(w, http.StatusAccepted, jsonFromService)
+}
+
+func (app *Config) logEventViaRabbit(w http.ResponseWriter, l LogPayload) {
+	err := app.pushToQueue(l.Name, l.Data)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	jsonResponse := jsonResponse{
+		Error:   false,
+		Message: "Logged via rabbitmq",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, jsonResponse)
+}
+
+func (app *Config) pushToQueue(name, msg string) error {
+	emitter, err := event.NewEventEmitter(app.Rabbit)
+	if err != nil {
+		return err
+	}
+
+	payload := LogPayload{
+		Name: name,
+		Data: msg,
+	}
+
+	j, _ := json.MarshalIndent(&payload, "", "\t")
+	err = emitter.Push(string(j), "log.INFO") // Severity -> topic name
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
