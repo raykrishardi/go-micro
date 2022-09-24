@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.starlark.net/lib/json"
 )
 
 // This struct is used to RECEIVE events FROM QUEUE (i.e. listener service as consumer while broker service as producer)
