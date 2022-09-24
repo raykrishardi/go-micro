@@ -1,8 +1,10 @@
 package event
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
+	"net/http"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.starlark.net/lib/json"
@@ -114,5 +116,30 @@ func handlePayload(payload Payload) {
 }
 
 func logEvent(entry Payload) error {
+	// Marshall/convert to json the payload
+	jsonData, err := json.MarshalIndent(&entry, "", "\t")
+	if err != nil {
+		return err
+	}
 
+	// Call the logger microservice
+	request, err := http.NewRequest("POST", "http://logger-service/log", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusAccepted {
+		// Something went wrong on the server side
+		return err
+	}
+
+	return nil
 }
