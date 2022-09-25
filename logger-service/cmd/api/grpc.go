@@ -2,9 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"net"
 
 	"github.com/raykrishardi/log-service/data"
 	"github.com/raykrishardi/log-service/logs"
+	"google.golang.org/grpc"
 )
 
 // Need to have the first line for every service in GRPC which is used for backward compatibility
@@ -14,7 +18,7 @@ type LogServer struct {
 }
 
 // We are now using the generated source code from protoc
-func (l *LogServer) WriteLog(ctx context.Context, req logs.LogRequest) (*logs.LogResponse, error) {
+func (l *LogServer) WriteLog(ctx context.Context, req *logs.LogRequest) (*logs.LogResponse, error) {
 	// Using the generated source code
 	input := req.GetLogEntry() // value of input will be input.name and input.data just like in the proto file
 
@@ -36,4 +40,21 @@ func (l *LogServer) WriteLog(ctx context.Context, req logs.LogRequest) (*logs.Lo
 		Result: "logged!",
 	}
 	return res, nil
+}
+
+func (app *Config) gRPCListen() {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", gRpcPort))
+	if err != nil {
+		log.Fatalf("Failed to listen for grpc: %v", err)
+	}
+
+	s := grpc.NewServer()
+
+	logs.RegisterLogServiceServer(s, &LogServer{Models: app.Models})
+
+	log.Printf("gRPC server started on port %s", gRpcPort)
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("Failed to listen for grpc: %v", err)
+	}
 }

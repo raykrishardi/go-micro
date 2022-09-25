@@ -62,6 +62,9 @@ func (app *Config) serve() {
 	err := rpc.Register(new(RPCServer))
 	go app.rpcListen()
 
+	// Listen to grpc service
+	go app.gRPCListen()
+
 	// Run the HTTP server
 	err = srv.ListenAndServe()
 	if err != nil {
