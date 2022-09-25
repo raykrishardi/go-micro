@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/raykrishardi/broker/event"
-	"github.com/raykrishardi/log-service/logs"
+	"github.com/raykrishardi/broker/logs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
