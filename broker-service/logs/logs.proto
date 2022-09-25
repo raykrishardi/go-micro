@@ -1,0 +1,24 @@
+syntax = "proto3"; // syntax
+
+package logs; // what is the package called
+
+option go_package = "/logs"; // what's the go package called
+
+// Classes, defines the type of messages you are sending around
+message Log {
+ string name = 1;
+ string data = 2;
+}
+
+message LogRequest {
+ Log logEntry = 1;
+}
+
+message LogResponse {
+ string result = 1;
+}
+
+// Indicates that you have 1 function called WriteLog with param LogRequest and returns LogResponse
+service LogService {
+ rpc WriteLog(LogRequest) returns (LogResponse);
+}
