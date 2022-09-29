@@ -11,7 +11,7 @@ services:
     restart: always
     # Broker service will be accessible from localhost port 8080
     ports:
-    - "8080:80"
+    - "8080:8080"
     deploy:
       # Deploy only 1 service for now because only 1 container can be mapped to localhost 8080 (unless using service discovery)
       mode: replicated
