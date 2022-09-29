@@ -7,3 +7,4 @@ project/db-data/**
 logger-service/loggerServiceApp
 mail-service/mailApp
 listener-service/listenerApp
+front-end/frontEndApp

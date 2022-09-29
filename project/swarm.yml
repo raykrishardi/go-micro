@@ -4,6 +4,12 @@ version: '3'
 # have to change the image: <name> part to whatever your image names are
 
 services:
+  front-end:
+    image: raylayadi/front-end:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+
   broker-service:
     image: raylayadi/broker-service:1.0.1
     deploy:
