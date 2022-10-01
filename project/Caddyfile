@@ -1,0 +1,39 @@
+# contact email in case let's encrypt needs to contact you regarding the ssl certificates
+{
+    email   you@gmail.com
+}
+
+# Applied to all virtual hosts
+# For all files that end with the specified extensions, cache them for max-age=5184000 seconds (save traffic to and from our web server)
+(static) {
+	@static {
+		file
+		path *.ico *.css *.js *.gif *.jpg *.jpeg *.png *.svg *.woff *.json
+	}
+	header @static Cache-Control max-age=5184000
+}
+
+# This one is applied when SSL is enabled
+# force redirect to https if using http
+(security) {
+	header {
+		# enable HSTS
+		Strict-Transport-Security max-age=31536000;
+		# disable clients from sniffing the media type
+		X-Content-Type-Options nosniff
+		# keep referrer data off of HTTP connections
+		Referrer-Policy no-referrer-when-downgrade
+	}
+}
+
+# Specify the server
+localhost:80 {
+	encode zstd gzip # making the file as small as possible
+	import static # import previously defined static block
+
+	reverse_proxy  http://front-end:8081 # btw front-end  and broker-service can just run on port 80, trevor just use port 8080 and 8081 to differentiate them
+}
+
+backend:80 {
+	reverse_proxy http://broker-service:8080
+}

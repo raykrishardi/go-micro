@@ -4,6 +4,20 @@ version: '3'
 # have to change the image: <name> part to whatever your image names are
 
 services:
+  caddy:
+    image: raylayadi/micro-caddy:1.0.0
+    deploy:
+      mode: replicated
+      replicas: 1
+    ports:
+      - "80:80"
+      - "443:443"
+    # Store the SSL certificates since caddy is ephemeral and if you don't have these then it will keep asking for certs
+    # which will eventually lead to unable to request for SSL certs for n number of days
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
   front-end:
     image: raylayadi/front-end:1.0.0
     deploy:
@@ -91,3 +105,9 @@ services:
       POSTGRES_DB: users
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
+
+
+volumes:
+  caddy_data:
+    external: true
+  caddy_config:
