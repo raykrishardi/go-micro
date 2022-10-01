@@ -51,7 +51,7 @@
             };
 
             {{/* Since in golang template, need to use http:\/\/ */}}
-            fetch("http:\/\/localhost:8080", body)
+            fetch({{.BrokerURL}}, body)
             .then((response) => response.json())
             .then((data) => {
                 sent.innerHTML = "empty post request"
@@ -87,7 +87,7 @@
             }
 
             {{/* Since in golang template, need to use http:\/\/ */}}
-            fetch("http:\/\/localhost:8080/handle", body)
+            fetch({{print .BrokerURL "/handle"}}, body)
             .then((response) => response.json())
             .then((data) => {
                 sent.innerHTML = JSON.stringify(payload, undefined, 4)
@@ -123,7 +123,7 @@
             }
 
             {{/* Since in golang template, need to use http:\/\/ */}}
-            fetch("http:\/\/localhost:8080/handle", body)
+            fetch({{print .BrokerURL "/handle"}}, body)
             .then((response) => response.json())
             .then((data) => {
                 sent.innerHTML = JSON.stringify(payload, undefined, 4)
@@ -159,7 +159,7 @@
             }
 
             {{/* Since in golang template, need to use http:\/\/ */}}
-            fetch("http:\/\/localhost:8080/log-grpc", body)
+            fetch({{print .BrokerURL "/log-grpc"}}, body)
             .then((response) => response.json())
             .then((data) => {
                 sent.innerHTML = JSON.stringify(payload, undefined, 4)
@@ -197,7 +197,7 @@
             }
 
             {{/* Since in golang template, need to use http:\/\/ */}}
-            fetch("http:\/\/localhost:8080/handle", body)
+            fetch({{print .BrokerURL "/handle"}}, body)
             .then((response) => response.json())
             .then((data) => {
                 sent.innerHTML = JSON.stringify(payload, undefined, 4)
