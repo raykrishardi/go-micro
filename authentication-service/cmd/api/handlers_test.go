@@ -3,13 +3,46 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
+// MOCK the http client so that you don't need to call logger-service app
+// These two must have the exact same name...
+type RoundTripFunc func(req *http.Request) *http.Response
+
+func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req), nil
+}
+
+func NewTestClient(fn RoundTripFunc) *http.Client {
+	return &http.Client{
+		Transport: fn,
+	}
+}
+
 // Test authenticate by simulating a POST request from the browser
 func TestAuthenticate(t *testing.T) {
+	// What the test HTTP client will send back...
+	jsonToReturn := `
+{
+	"error": false,
+	"message": "some message",
+}
+	`
+
+	client := NewTestClient(func(req *http.Request) *http.Response {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(bytes.NewBufferString(jsonToReturn)),
+			Header:     make(http.Header),
+		}
+	})
+
+	testApp.Client = client
+
 	postBody := map[string]interface{}{
 		"email":    "me@here.com",
 		"password": "verysecret",

@@ -71,8 +71,7 @@ func (app *Config) logEntry(name, data string) error {
 	}
 
 	request.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	response, err := client.Do(request)
+	response, err := app.Client.Do(request)
 	if err != nil {
 		return err
 	}
